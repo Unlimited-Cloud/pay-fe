@@ -160,6 +160,7 @@ export default function PaymentForm({
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    if (isReadOnlyInvoice) return;
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -178,6 +179,7 @@ export default function PaymentForm({
   };
 
   const handlePhoneCodeSelect = (country: Country) => {
+    if (isReadOnlyInvoice) return;
     setFormData((prev) => ({ ...prev, phoneCode: country.phone_code }));
     setIsPhoneCodeOpen(false);
     setPhoneSearch('');
@@ -209,9 +211,14 @@ export default function PaymentForm({
 
     setLoading(true);
 
+    setLoading(true);
+
     try {
+      const activeOrderId = initialData?.reference;
+
       if (formData.selectedGateway === 'khalti') {
         const result = await initiateKhaltiPayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -227,6 +234,7 @@ export default function PaymentForm({
         }
       } else if (formData.selectedGateway === 'esewa') {
         const result = await initiateEsewaPayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -243,6 +251,7 @@ export default function PaymentForm({
         }
       } else if (formData.selectedGateway === 'cybersource') {
         const sessionData = await initiateCyberSourcePayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           currency: formData.currency,
         });
@@ -455,11 +464,13 @@ export default function PaymentForm({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Contact details */}
               <div className="space-y-3">
                 <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
                   Contact details
                 </p>
 
+                {/* Full Name */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Full name <span className="text-[#C8102E]">*</span>
@@ -482,14 +493,19 @@ export default function PaymentForm({
                       type="text"
                       name="name"
                       required
+                      readOnly={isReadOnlyInvoice}
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Jane Doe"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 transition-colors"
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                        }`}
                     />
                   </div>
                 </div>
 
+                {/* Email Address */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Email address <span className="text-[#C8102E]">*</span>
@@ -512,18 +528,19 @@ export default function PaymentForm({
                       type="email"
                       name="email"
                       required
-                      readOnly={isReadOnlyInvoice && Boolean(formData.email)}
+                      readOnly={isReadOnlyInvoice}
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="jane@example.com"
-                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 focus:outline-none transition-colors ${isReadOnlyInvoice && formData.email
-                        ? 'bg-slate-100/70 border-slate-200 cursor-not-allowed'
-                        : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F]'
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                         }`}
                     />
                   </div>
                 </div>
 
+                {/* Phone Number */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Phone number <span className="text-[#C8102E]">*</span>
@@ -532,8 +549,12 @@ export default function PaymentForm({
                     <div className="relative shrink-0" ref={phoneDropdownRef}>
                       <button
                         type="button"
+                        disabled={isReadOnlyInvoice}
                         onClick={() => setIsPhoneCodeOpen(!isPhoneCodeOpen)}
-                        className="h-[42px] px-3.5 bg-slate-50/60 border border-slate-200 rounded-xl flex items-center gap-1.5 text-sm font-medium text-slate-800 hover:border-slate-300 focus:outline-none focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 transition-colors cursor-pointer"
+                        className={`h-[42px] px-3.5 border rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
+                            ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                            : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
+                          }`}
                       >
                         <span>
                           {formData.phoneCode || (
@@ -542,23 +563,25 @@ export default function PaymentForm({
                             </span>
                           )}
                         </span>
-                        <svg
-                          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isPhoneCodeOpen ? 'rotate-180' : ''
-                            }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
+                        {!isReadOnlyInvoice && (
+                          <svg
+                            className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isPhoneCodeOpen ? 'rotate-180' : ''
+                              }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        )}
                       </button>
 
-                      {isPhoneCodeOpen && (
+                      {isPhoneCodeOpen && !isReadOnlyInvoice && (
                         <div className="absolute left-0 z-50 mt-1.5 w-64 max-h-60 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/70 overflow-hidden flex flex-col">
                           <div className="p-2 border-b border-slate-100 bg-slate-50">
                             <input
@@ -577,8 +600,8 @@ export default function PaymentForm({
                                 type="button"
                                 onClick={() => handlePhoneCodeSelect(c)}
                                 className={`w-full px-3 py-1.5 flex items-center justify-between text-left text-xs cursor-pointer ${formData.phoneCode === c.phone_code
-                                  ? 'bg-[#1E3A5F]/5 font-semibold text-[#1E3A5F]'
-                                  : 'text-slate-700 hover:bg-slate-50'
+                                    ? 'bg-[#1E3A5F]/5 font-semibold text-[#1E3A5F]'
+                                    : 'text-slate-700 hover:bg-slate-50'
                                   }`}
                               >
                                 <span className="truncate mr-2">{c.name}</span>
@@ -615,13 +638,13 @@ export default function PaymentForm({
                         type="tel"
                         name="phoneNumber"
                         required
-                        readOnly={isReadOnlyInvoice && Boolean(formData.phoneNumber)}
+                        readOnly={isReadOnlyInvoice}
                         value={formData.phoneNumber}
                         onChange={handleChange}
                         placeholder="XXXXXXXXXX"
-                        className={`w-full h-[42px] pl-10 pr-3.5 border rounded-xl text-sm text-slate-800 focus:outline-none transition-colors ${isReadOnlyInvoice && formData.phoneNumber
-                            ? 'bg-slate-100/70 border-slate-200 cursor-not-allowed'
-                            : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F]'
+                        className={`w-full h-[42px] pl-10 pr-3.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
+                            ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                            : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                           }`}
                       />
                     </div>
@@ -629,12 +652,14 @@ export default function PaymentForm({
                 </div>
               </div>
 
+              {/* Transfer details */}
               <div className="space-y-3">
                 <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
                   Transfer details
                 </p>
 
                 <div className="grid grid-cols-3 gap-3">
+                  {/* Currency */}
                   <div className="relative" ref={currencyDropdownRef}>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
                       Currency <span className="text-[#C8102E]">*</span>
@@ -643,9 +668,9 @@ export default function PaymentForm({
                       type="button"
                       disabled={isReadOnlyInvoice}
                       onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                      className={`w-full h-[42px] px-3.5 bg-slate-50/60 border border-slate-200 rounded-xl flex items-center justify-between text-sm font-medium text-slate-800 hover:border-slate-300 focus:outline-none focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 transition-colors ${isReadOnlyInvoice
-                        ? 'opacity-70 cursor-not-allowed bg-slate-100'
-                        : 'cursor-pointer'
+                      className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
                         }`}
                     >
                       <span>
@@ -681,8 +706,8 @@ export default function PaymentForm({
                             type="button"
                             onClick={() => handleCurrencySelect(c.code)}
                             className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs sm:text-sm cursor-pointer ${formData.currency === c.code
-                              ? 'bg-[#1E3A5F]/5 text-[#1E3A5F] font-semibold'
-                              : 'text-slate-700 hover:bg-slate-50'
+                                ? 'bg-[#1E3A5F]/5 text-[#1E3A5F] font-semibold'
+                                : 'text-slate-700 hover:bg-slate-50'
                               }`}
                           >
                             <span>
@@ -700,13 +725,14 @@ export default function PaymentForm({
                     )}
                   </div>
 
+                  {/* Amount */}
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
                       Amount <span className="text-[#C8102E]">*</span>
                     </label>
                     <div className="relative">
                       {selectedCurrencySymbol && (
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 select-none">
                           {selectedCurrencySymbol}
                         </span>
                       )}
@@ -721,9 +747,9 @@ export default function PaymentForm({
                         onChange={handleChange}
                         placeholder="100.00"
                         className={`w-full h-[42px] ${selectedCurrencySymbol ? 'pl-8' : 'pl-3.5'
-                          } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-colors ${isReadOnlyInvoice
-                            ? 'bg-slate-100/70 border-slate-200 cursor-not-allowed'
-                            : 'bg-slate-50/60 focus:bg-white'
+                          } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${isReadOnlyInvoice
+                            ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                            : 'bg-slate-50/60 focus:bg-white focus:ring-2'
                           } ${amountError
                             ? 'border-[#C8102E] focus:border-[#C8102E] focus:ring-[#C8102E]/10'
                             : 'border-slate-200 focus:border-[#1E3A5F] focus:ring-[#1E3A5F]/10'
@@ -736,6 +762,7 @@ export default function PaymentForm({
                   </div>
                 </div>
 
+                {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">
                     Description <span className="text-[#C8102E]">*</span>
@@ -758,15 +785,20 @@ export default function PaymentForm({
                       type="text"
                       name="description"
                       required
+                      readOnly={isReadOnlyInvoice}
                       value={formData.description}
                       onChange={handleChange}
                       placeholder="Invoice / order ref"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/60 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 transition-colors"
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                        }`}
                     />
                   </div>
                 </div>
               </div>
 
+              {/* Payment method (Always clickable) */}
               <div className="space-y-3">
                 <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
                   Payment method
@@ -788,8 +820,8 @@ export default function PaymentForm({
                             setFormData({ ...formData, selectedGateway: gw.id })
                           }
                           className={`relative flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all duration-150 cursor-pointer ${isSelected
-                            ? 'border-[#1E3A5F] bg-[#1E3A5F]/[0.04] shadow-md shadow-[#1E3A5F]/10 -translate-y-0.5'
-                            : 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-sm'
+                              ? 'border-[#1E3A5F] bg-[#1E3A5F]/[0.04] shadow-md shadow-[#1E3A5F]/10 -translate-y-0.5'
+                              : 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-sm'
                             }`}
                         >
                           <span
@@ -821,6 +853,7 @@ export default function PaymentForm({
                 )}
               </div>
 
+              {/* Pay Button (Always active) */}
               <button
                 type="submit"
                 disabled={
@@ -841,8 +874,8 @@ export default function PaymentForm({
                 ) : formData.selectedGateway ? (
                   <>
                     {`Pay ${formData.amount
-                      ? `${formData.currency} ${formData.amount}`
-                      : ''
+                        ? `${formData.currency} ${formData.amount}`
+                        : ''
                       } via ${PAYMENT_GATEWAYS[formData.selectedGateway]?.name}`}
                     <svg
                       className="w-4 h-4"

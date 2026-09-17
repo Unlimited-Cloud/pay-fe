@@ -20,14 +20,26 @@ export interface PaymentInitiateResponse {
   [key: string]: any;
 }
 
-// Generate unique random order ID (e.g., ORDER-839201)
+// Generate matching pattern: PL-YYYYMMDD-XXXXXX (e.g., PL-20260917-1BUNGK)
 export function generateOrderId(): string {
-  const randomNum = Math.floor(100000 + Math.random() * 900000);
-  return `ORDER-${randomNum}`;
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${year}${month}${day}`;
+
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomStr = '';
+  for (let i = 0; i < 6; i++) {
+    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return `PL-${dateStr}-${randomStr}`;
 }
 
 // Khalti Initiate
 export async function initiateKhaltiPayment(formData: {
+  orderId?: string;
   amount: string;
   name: string;
   email: string;
@@ -40,7 +52,7 @@ export async function initiateKhaltiPayment(formData: {
   }
 
   const payload: PaymentInitiatePayload = {
-    order_id: generateOrderId(),
+    order_id: formData.orderId || generateOrderId(),
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
@@ -68,6 +80,7 @@ export async function initiateKhaltiPayment(formData: {
 
 // eSewa Initiate
 export async function initiateEsewaPayment(formData: {
+  orderId?: string;
   amount: string;
   name: string;
   email: string;
@@ -80,7 +93,7 @@ export async function initiateEsewaPayment(formData: {
   }
 
   const payload: PaymentInitiatePayload = {
-    order_id: generateOrderId(),
+    order_id: formData.orderId || generateOrderId(),
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
@@ -106,7 +119,9 @@ export async function initiateEsewaPayment(formData: {
   return data;
 }
 
+// CyberSource Session Initiate
 export async function initiateCyberSourcePayment(payload: {
+  orderId?: string;
   amount: string | number;
   currency: string;
 }): Promise<{
@@ -130,6 +145,7 @@ export async function initiateCyberSourcePayment(payload: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
+      order_id: payload.orderId || generateOrderId(),
       amount: parseFloat(String(payload.amount)),
       currency: payload.currency,
     }),
@@ -142,6 +158,7 @@ export async function initiateCyberSourcePayment(payload: {
   return data;
 }
 
+// CyberSource Verification Finalize
 export async function finalizeCyberSourcePayment(payload: {
   order_reference: string;
   result_jwt: string;
