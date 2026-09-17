@@ -45,7 +45,7 @@ export default function PaymentPage() {
         setError(null);
 
         const apiBase =
-          process.env.NEXT_PUBLIC_API_BASE_URL?.trim(); 
+          process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
         const response = await fetch(`${apiBase}/payment-links/${token}`, {
           method: "GET",
@@ -103,7 +103,8 @@ export default function PaymentPage() {
       initialData={{
         name: payment.customer_user?.name || "",
         email: payment.customer_user?.email || "",
-        
+        phoneCode: payment.customer_user?.phone_code || '',
+        phoneNumber: payment.customer_user?.phone  || '',
         amount: payment.amount,
         currency: payment.currency,
         description: payment.description || `Invoice Ref: ${payment.reference}`,
