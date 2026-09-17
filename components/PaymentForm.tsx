@@ -211,9 +211,14 @@ export default function PaymentForm({
 
     setLoading(true);
 
+    setLoading(true);
+
     try {
+      const activeOrderId = initialData?.reference;
+
       if (formData.selectedGateway === 'khalti') {
         const result = await initiateKhaltiPayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -229,6 +234,7 @@ export default function PaymentForm({
         }
       } else if (formData.selectedGateway === 'esewa') {
         const result = await initiateEsewaPayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -245,6 +251,7 @@ export default function PaymentForm({
         }
       } else if (formData.selectedGateway === 'cybersource') {
         const sessionData = await initiateCyberSourcePayment({
+          orderId: activeOrderId,
           amount: formData.amount,
           currency: formData.currency,
         });
@@ -277,8 +284,7 @@ export default function PaymentForm({
 
               if (verification.success) {
                 alert(
-                  `Payment successful! Transaction ID: ${
-                    verification.cybersource_transaction_id || 'Approved'
+                  `Payment successful! Transaction ID: ${verification.cybersource_transaction_id || 'Approved'
                   }`
                 );
                 window.location.reload();
@@ -491,11 +497,10 @@ export default function PaymentForm({
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Jane Doe"
-                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${
-                        isReadOnlyInvoice
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
                           ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                           : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
-                      }`}
+                        }`}
                     />
                   </div>
                 </div>
@@ -527,11 +532,10 @@ export default function PaymentForm({
                       value={formData.email}
                       onChange={handleChange}
                       placeholder="jane@example.com"
-                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${
-                        isReadOnlyInvoice
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
                           ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                           : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
-                      }`}
+                        }`}
                     />
                   </div>
                 </div>
@@ -547,11 +551,10 @@ export default function PaymentForm({
                         type="button"
                         disabled={isReadOnlyInvoice}
                         onClick={() => setIsPhoneCodeOpen(!isPhoneCodeOpen)}
-                        className={`h-[42px] px-3.5 border rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors focus:outline-none ${
-                          isReadOnlyInvoice
+                        className={`h-[42px] px-3.5 border rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
                             ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                             : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
-                        }`}
+                          }`}
                       >
                         <span>
                           {formData.phoneCode || (
@@ -562,9 +565,8 @@ export default function PaymentForm({
                         </span>
                         {!isReadOnlyInvoice && (
                           <svg
-                            className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                              isPhoneCodeOpen ? 'rotate-180' : ''
-                            }`}
+                            className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isPhoneCodeOpen ? 'rotate-180' : ''
+                              }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -597,11 +599,10 @@ export default function PaymentForm({
                                 key={c.id}
                                 type="button"
                                 onClick={() => handlePhoneCodeSelect(c)}
-                                className={`w-full px-3 py-1.5 flex items-center justify-between text-left text-xs cursor-pointer ${
-                                  formData.phoneCode === c.phone_code
+                                className={`w-full px-3 py-1.5 flex items-center justify-between text-left text-xs cursor-pointer ${formData.phoneCode === c.phone_code
                                     ? 'bg-[#1E3A5F]/5 font-semibold text-[#1E3A5F]'
                                     : 'text-slate-700 hover:bg-slate-50'
-                                }`}
+                                  }`}
                               >
                                 <span className="truncate mr-2">{c.name}</span>
                                 <span className="text-slate-400 font-mono text-[11px] shrink-0">
@@ -641,11 +642,10 @@ export default function PaymentForm({
                         value={formData.phoneNumber}
                         onChange={handleChange}
                         placeholder="XXXXXXXXXX"
-                        className={`w-full h-[42px] pl-10 pr-3.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${
-                          isReadOnlyInvoice
+                        className={`w-full h-[42px] pl-10 pr-3.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
                             ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                             : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
-                        }`}
+                          }`}
                       />
                     </div>
                   </div>
@@ -668,11 +668,10 @@ export default function PaymentForm({
                       type="button"
                       disabled={isReadOnlyInvoice}
                       onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                      className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${
-                        isReadOnlyInvoice
+                      className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
                           ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                           : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
-                      }`}
+                        }`}
                     >
                       <span>
                         {formData.currency || (
@@ -683,9 +682,8 @@ export default function PaymentForm({
                       </span>
                       {!isReadOnlyInvoice && (
                         <svg
-                          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${
-                            isCurrencyOpen ? 'rotate-180' : ''
-                          }`}
+                          className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isCurrencyOpen ? 'rotate-180' : ''
+                            }`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -707,11 +705,10 @@ export default function PaymentForm({
                             key={c.code}
                             type="button"
                             onClick={() => handleCurrencySelect(c.code)}
-                            className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs sm:text-sm cursor-pointer ${
-                              formData.currency === c.code
+                            className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs sm:text-sm cursor-pointer ${formData.currency === c.code
                                 ? 'bg-[#1E3A5F]/5 text-[#1E3A5F] font-semibold'
                                 : 'text-slate-700 hover:bg-slate-50'
-                            }`}
+                              }`}
                           >
                             <span>
                               {c.code}{' '}
@@ -749,17 +746,14 @@ export default function PaymentForm({
                         value={formData.amount}
                         onChange={handleChange}
                         placeholder="100.00"
-                        className={`w-full h-[42px] ${
-                          selectedCurrencySymbol ? 'pl-8' : 'pl-3.5'
-                        } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${
-                          isReadOnlyInvoice
+                        className={`w-full h-[42px] ${selectedCurrencySymbol ? 'pl-8' : 'pl-3.5'
+                          } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${isReadOnlyInvoice
                             ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                             : 'bg-slate-50/60 focus:bg-white focus:ring-2'
-                        } ${
-                          amountError
+                          } ${amountError
                             ? 'border-[#C8102E] focus:border-[#C8102E] focus:ring-[#C8102E]/10'
                             : 'border-slate-200 focus:border-[#1E3A5F] focus:ring-[#1E3A5F]/10'
-                        }`}
+                          }`}
                       />
                     </div>
                     {amountError && (
@@ -795,11 +789,10 @@ export default function PaymentForm({
                       value={formData.description}
                       onChange={handleChange}
                       placeholder="Invoice / order ref"
-                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${
-                        isReadOnlyInvoice
+                      className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
                           ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                           : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
-                      }`}
+                        }`}
                     />
                   </div>
                 </div>
@@ -826,16 +819,14 @@ export default function PaymentForm({
                           onClick={() =>
                             setFormData({ ...formData, selectedGateway: gw.id })
                           }
-                          className={`relative flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all duration-150 cursor-pointer ${
-                            isSelected
+                          className={`relative flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all duration-150 cursor-pointer ${isSelected
                               ? 'border-[#1E3A5F] bg-[#1E3A5F]/[0.04] shadow-md shadow-[#1E3A5F]/10 -translate-y-0.5'
                               : 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-sm'
-                          }`}
+                            }`}
                         >
                           <span
-                            className={`absolute top-2 left-2 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              isSelected ? 'border-[#1E3A5F]' : 'border-slate-300'
-                            }`}
+                            className={`absolute top-2 left-2 w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-[#1E3A5F]' : 'border-slate-300'
+                              }`}
                           >
                             {isSelected && (
                               <span className="w-1.5 h-1.5 rounded-full bg-[#1E3A5F]" />
@@ -882,11 +873,10 @@ export default function PaymentForm({
                   </>
                 ) : formData.selectedGateway ? (
                   <>
-                    {`Pay ${
-                      formData.amount
+                    {`Pay ${formData.amount
                         ? `${formData.currency} ${formData.amount}`
                         : ''
-                    } via ${PAYMENT_GATEWAYS[formData.selectedGateway]?.name}`}
+                      } via ${PAYMENT_GATEWAYS[formData.selectedGateway]?.name}`}
                     <svg
                       className="w-4 h-4"
                       fill="none"
