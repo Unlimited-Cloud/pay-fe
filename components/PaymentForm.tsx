@@ -268,15 +268,12 @@ export default function PaymentForm({
 
           setTimeout(async () => {
             try {
-              if (!cyberSourceContainerRef.current) return;
-
               const resultJwt = await mountCyberSourceCheckout(
-                cyberSourceContainerRef.current,
+                '#payment-buttons',
                 sessionData.capture_context,
                 sessionData.client_library,
                 sessionData.client_library_integrity
               );
-
               setCyberSourceMounting(true);
 
               const verification = await finalizeCyberSourcePayment({

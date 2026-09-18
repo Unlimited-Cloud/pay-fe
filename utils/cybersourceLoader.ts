@@ -5,7 +5,7 @@ declare global {
       VAS?: {
         UnifiedCheckout: (captureContext: string) => Promise<{
           createCheckout: () => Promise<{
-            mount: (container: HTMLElement) => Promise<string>;
+            mount: (container: string) => Promise<string>;
           }>;
         }>;
       };
@@ -37,7 +37,7 @@ declare global {
   
   // Mounts checkout and resolves with the result_jwt once the user submits payment
   export async function mountCyberSourceCheckout(
-    container: HTMLElement,
+    containerSelector: string,
     captureContext: string,
     clientLibraryUrl: string,
     integrity?: string
@@ -55,6 +55,6 @@ declare global {
     const checkout = await client.createCheckout();
   
     // 4. Mount into container (resolves with result JWT when payment is completed)
-    const resultJwt = await checkout.mount(container);
+    const resultJwt = await checkout.mount(containerSelector);
     return resultJwt;
   }
