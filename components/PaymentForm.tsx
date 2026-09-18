@@ -223,6 +223,7 @@ export default function PaymentForm({
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
+          description: formData.description,
         });
 
         const redirectUrl = result.payment_url || result.data?.payment_url;
@@ -239,6 +240,7 @@ export default function PaymentForm({
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
+          description: formData.description,
         });
 
         const esewaData = result.data || result;

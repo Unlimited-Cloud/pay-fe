@@ -7,6 +7,7 @@ export interface PaymentInitiatePayload {
   name: string;
   email: string;
   mobile: string;
+  description?: string;
 }
 
 export interface PaymentInitiateResponse {
@@ -44,6 +45,7 @@ export async function initiateKhaltiPayment(formData: {
   name: string;
   email: string;
   phoneNumber: string;
+  description?: string;
 }): Promise<PaymentInitiateResponse> {
   const token = localStorage.getItem("bearer_token");
 
@@ -57,6 +59,7 @@ export async function initiateKhaltiPayment(formData: {
     name: formData.name,
     email: formData.email,
     mobile: formData.phoneNumber,
+    description: formData.description,
   };
 
   const response = await fetch(`${API_BASE_URL}/khalti/initiate`, {
@@ -85,6 +88,7 @@ export async function initiateEsewaPayment(formData: {
   name: string;
   email: string;
   phoneNumber: string;
+  description?: string;
 }): Promise<PaymentInitiateResponse> {
   const token = localStorage.getItem("bearer_token");
 
@@ -98,6 +102,7 @@ export async function initiateEsewaPayment(formData: {
     name: formData.name,
     email: formData.email,
     mobile: formData.phoneNumber,
+    description: formData.description,  
   };
 
   const response = await fetch(`${API_BASE_URL}/esewa/initiate`, {
