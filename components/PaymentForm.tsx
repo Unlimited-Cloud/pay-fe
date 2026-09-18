@@ -223,6 +223,7 @@ export default function PaymentForm({
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
+          description: formData.description,
         });
 
         const redirectUrl = result.payment_url || result.data?.payment_url;
@@ -239,6 +240,7 @@ export default function PaymentForm({
           name: formData.name,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
+          description: formData.description,
         });
 
         const esewaData = result.data || result;
@@ -266,15 +268,12 @@ export default function PaymentForm({
 
           setTimeout(async () => {
             try {
-              if (!cyberSourceContainerRef.current) return;
-
               const resultJwt = await mountCyberSourceCheckout(
-                cyberSourceContainerRef.current,
+                '#payment-buttons',
                 sessionData.capture_context,
                 sessionData.client_library,
                 sessionData.client_library_integrity
               );
-
               setCyberSourceMounting(true);
 
               const verification = await finalizeCyberSourcePayment({
