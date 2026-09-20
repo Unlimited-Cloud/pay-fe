@@ -272,9 +272,9 @@ export default function PaymentForm({
                 '#payment-buttons',
                 sessionData.capture_context,
                 sessionData.client_library,
-                sessionData.client_library_integrity
+                sessionData.client_library_integrity,
+                () => setCyberSourceMounting(false)
               );
-              setCyberSourceMounting(true);
 
               const verification = await finalizeCyberSourcePayment({
                 order_reference: sessionData.order_reference,
@@ -497,8 +497,8 @@ export default function PaymentForm({
                       onChange={handleChange}
                       placeholder="Jane Doe"
                       className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
-                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                        ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                        : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                         }`}
                     />
                   </div>
@@ -532,8 +532,8 @@ export default function PaymentForm({
                       onChange={handleChange}
                       placeholder="jane@example.com"
                       className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
-                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                        ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                        : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                         }`}
                     />
                   </div>
@@ -551,8 +551,8 @@ export default function PaymentForm({
                         disabled={isReadOnlyInvoice}
                         onClick={() => setIsPhoneCodeOpen(!isPhoneCodeOpen)}
                         className={`h-[42px] px-3.5 border rounded-xl flex items-center gap-1.5 text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
-                            ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                            : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
                           }`}
                       >
                         <span>
@@ -599,8 +599,8 @@ export default function PaymentForm({
                                 type="button"
                                 onClick={() => handlePhoneCodeSelect(c)}
                                 className={`w-full px-3 py-1.5 flex items-center justify-between text-left text-xs cursor-pointer ${formData.phoneCode === c.phone_code
-                                    ? 'bg-[#1E3A5F]/5 font-semibold text-[#1E3A5F]'
-                                    : 'text-slate-700 hover:bg-slate-50'
+                                  ? 'bg-[#1E3A5F]/5 font-semibold text-[#1E3A5F]'
+                                  : 'text-slate-700 hover:bg-slate-50'
                                   }`}
                               >
                                 <span className="truncate mr-2">{c.name}</span>
@@ -642,8 +642,8 @@ export default function PaymentForm({
                         onChange={handleChange}
                         placeholder="XXXXXXXXXX"
                         className={`w-full h-[42px] pl-10 pr-3.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
-                            ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                            : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                           }`}
                       />
                     </div>
@@ -668,8 +668,8 @@ export default function PaymentForm({
                       disabled={isReadOnlyInvoice}
                       onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                       className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
-                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                          : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
+                        ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                        : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
                         }`}
                     >
                       <span>
@@ -705,8 +705,8 @@ export default function PaymentForm({
                             type="button"
                             onClick={() => handleCurrencySelect(c.code)}
                             className={`w-full px-3 py-2 flex items-center justify-between text-left text-xs sm:text-sm cursor-pointer ${formData.currency === c.code
-                                ? 'bg-[#1E3A5F]/5 text-[#1E3A5F] font-semibold'
-                                : 'text-slate-700 hover:bg-slate-50'
+                              ? 'bg-[#1E3A5F]/5 text-[#1E3A5F] font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
                               }`}
                           >
                             <span>
@@ -789,8 +789,8 @@ export default function PaymentForm({
                       onChange={handleChange}
                       placeholder="Invoice / order ref"
                       className={`w-full pl-10 pr-3.5 py-2.5 border rounded-xl text-sm text-slate-800 transition-colors focus:outline-none ${isReadOnlyInvoice
-                          ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
-                          : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
+                        ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
+                        : 'bg-slate-50/60 border-slate-200 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10'
                         }`}
                     />
                   </div>
@@ -819,8 +819,8 @@ export default function PaymentForm({
                             setFormData({ ...formData, selectedGateway: gw.id })
                           }
                           className={`relative flex flex-col items-center justify-center py-3 px-2 rounded-xl border transition-all duration-150 cursor-pointer ${isSelected
-                              ? 'border-[#1E3A5F] bg-[#1E3A5F]/[0.04] shadow-md shadow-[#1E3A5F]/10 -translate-y-0.5'
-                              : 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-sm'
+                            ? 'border-[#1E3A5F] bg-[#1E3A5F]/[0.04] shadow-md shadow-[#1E3A5F]/10 -translate-y-0.5'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:-translate-y-0.5 hover:shadow-sm'
                             }`}
                         >
                           <span
@@ -873,8 +873,8 @@ export default function PaymentForm({
                 ) : formData.selectedGateway ? (
                   <>
                     {`Pay ${formData.amount
-                        ? `${formData.currency} ${formData.amount}`
-                        : ''
+                      ? `${formData.currency} ${formData.amount}`
+                      : ''
                       } via ${PAYMENT_GATEWAYS[formData.selectedGateway]?.name}`}
                     <svg
                       className="w-4 h-4"
