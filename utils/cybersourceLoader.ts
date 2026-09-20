@@ -57,7 +57,10 @@ export async function mountCyberSourceCheckout(
   const checkout = await client.createCheckout();
 
   if (onReady) {
-    checkout.on('ready', onReady);
+    checkout.on('ready', (data) => {
+      console.log('CyberSource ready event:', data);
+      onReady();
+    });
   }
 
   // 4. Mount into container (resolves with result JWT when payment is completed)
