@@ -6,6 +6,7 @@ export interface PaymentInitiatePayload {
   amount: number;
   name: string;
   email: string;
+  phone_code: string;
   mobile: string;
   description?: string;
 }
@@ -44,6 +45,7 @@ export async function initiateKhaltiPayment(formData: {
   amount: string;
   name: string;
   email: string;
+  phoneCode: string;
   phoneNumber: string;
   description?: string;
 }): Promise<PaymentInitiateResponse> {
@@ -58,6 +60,7 @@ export async function initiateKhaltiPayment(formData: {
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
+    phone_code: formData.phoneCode,
     mobile: formData.phoneNumber,
     description: formData.description,
   };
@@ -87,6 +90,7 @@ export async function initiateEsewaPayment(formData: {
   amount: string;
   name: string;
   email: string;
+  phoneCode: string;
   phoneNumber: string;
   description?: string;
 }): Promise<PaymentInitiateResponse> {
@@ -101,8 +105,9 @@ export async function initiateEsewaPayment(formData: {
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
+    phone_code: formData.phoneCode,
     mobile: formData.phoneNumber,
-    description: formData.description,  
+    description: formData.description,
   };
 
   const response = await fetch(`${API_BASE_URL}/esewa/initiate`, {
@@ -129,6 +134,11 @@ export async function initiateCyberSourcePayment(payload: {
   orderId?: string;
   amount: string | number;
   currency: string;
+  name: string;
+  email: string;
+  phoneCode: string;
+  phoneNumber: string;
+  description?: string;
 }): Promise<{
   success: boolean;
   order_reference: string;
@@ -141,7 +151,6 @@ export async function initiateCyberSourcePayment(payload: {
   if (!token) {
     throw new Error('Authorization token not found. Please reload the page.');
   }
-
   const response = await fetch(`${API_BASE_URL}/checkout/session`, {
     method: 'POST',
     headers: {
@@ -153,6 +162,11 @@ export async function initiateCyberSourcePayment(payload: {
       order_id: payload.orderId || generateOrderId(),
       amount: parseFloat(String(payload.amount)),
       currency: payload.currency,
+      name: payload.name,
+      email: payload.email,
+      phone_code: payload.phoneCode,
+      mobile: payload.phoneNumber,
+      description: payload.description,
     }),
   });
 

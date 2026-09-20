@@ -222,6 +222,7 @@ export default function PaymentForm({
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
+          phoneCode: formData.phoneCode,
           phoneNumber: formData.phoneNumber,
           description: formData.description,
         });
@@ -239,6 +240,7 @@ export default function PaymentForm({
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
+          phoneCode: formData.phoneCode,
           phoneNumber: formData.phoneNumber,
           description: formData.description,
         });
@@ -256,6 +258,11 @@ export default function PaymentForm({
           orderId: activeOrderId,
           amount: formData.amount,
           currency: formData.currency,
+          name: formData.name,
+          email: formData.email,
+          phoneCode: formData.phoneCode,
+          phoneNumber: formData.phoneNumber,
+          description: formData.description,
         });
 
         if (
