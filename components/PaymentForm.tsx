@@ -82,7 +82,11 @@ export default function PaymentForm({
       try {
         setIsInitializing(true);
         setInitError(null);
-        await fetchAuthToken();
+
+        // Only fetch if token is not already created
+        if (!localStorage.getItem("bearer_token")) {
+          await fetchAuthToken();
+        }
       } catch (error) {
         console.error('Session Token Error:', error);
         setInitError(
@@ -92,7 +96,6 @@ export default function PaymentForm({
         setIsInitializing(false);
       }
     };
-
     initSession();
   }, []);
 
@@ -122,9 +125,9 @@ export default function PaymentForm({
       setAmountError(null);
       return;
     }
-    setAmountError(
-      Number(formData.amount) < 10 ? 'Amount must be at least 10.' : null
-    );
+    // setAmountError(
+    //   Number(formData.amount) < 10 ? 'Amount must be at least 10.' : null
+    // );
   }, [formData.amount]);
 
   const selectedCurrencySymbol = CURRENCIES.find(
@@ -200,10 +203,10 @@ export default function PaymentForm({
       alert('Please enter a description.');
       return;
     }
-    if (Number(formData.amount) < 10) {
-      alert('Amount must be at least 10.');
-      return;
-    }
+    // if (Number(formData.amount) < 10) {
+    //   alert('Amount must be at least 10.');
+    //   return;
+    // }
     if (!formData.selectedGateway) {
       alert('Please select a payment method.');
       return;
@@ -746,7 +749,7 @@ export default function PaymentForm({
                         type="number"
                         name="amount"
                         step="0.01"
-                        min="10"
+                        // min="10"
                         required
                         readOnly={isReadOnlyInvoice}
                         value={formData.amount}

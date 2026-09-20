@@ -44,6 +44,8 @@ export async function mountCyberSourceCheckout(
   integrity?: string,
   onReady?: () => void
 ): Promise<string> {
+  console.log('LOADER VERSION CHECK — onReady param present:', typeof onReady);
+
   // 1. Load the script tag
   await loadScript(clientLibraryUrl, integrity);
 

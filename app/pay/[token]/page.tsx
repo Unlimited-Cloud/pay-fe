@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import PaymentForm from "@/components/PaymentForm";
+import { fetchAuthToken } from "@/services/authService";
 
 interface PaymentData {
   uuid: string;
@@ -35,22 +36,28 @@ export default function PaymentPage() {
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || isFetchingRef.current) return;
+    isFetchingRef.current = true;
 
-    const fetchPayment = async () => {
+    const initializeAndFetchPayment = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const apiBase =
-          process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+        // 1. Always call auth token first
+        const bearerToken = await fetchAuthToken();
 
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+        // 2. Fetch payment link with Bearer authorization header
         const response = await fetch(`${apiBase}/payment-links/${token}`, {
           method: "GET",
           headers: {
             Accept: "application/json",
+            Authorization: `Bearer ${bearerToken}`,
           },
         });
 
@@ -63,18 +70,23 @@ export default function PaymentPage() {
 
         setPayment(result.data ?? null);
       } catch (err) {
-        setError("Unable to connect to payment server. Please try again.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to connect to payment server. Please try again."
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPayment();
+    initializeAndFetchPayment();
   }, [token]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#111827] flex items-center justify-center">
+      <div className="min-h-screen bg-[#111827] flex flex-col items-center justify-center gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/30 border-t-white" />
         <p className="text-white text-sm">Loading invoice details...</p>
       </div>
     );
@@ -103,8 +115,8 @@ export default function PaymentPage() {
       initialData={{
         name: payment.customer_user?.name || "",
         email: payment.customer_user?.email || "",
-        phoneCode: payment.customer_user?.phone_code || '',
-        phoneNumber: payment.customer_user?.phone  || '',
+        phoneCode: payment.customer_user?.phone_code || "",
+        phoneNumber: payment.customer_user?.phone || payment.customer_user?.mobile || "",
         amount: payment.amount,
         currency: payment.currency,
         description: payment.description || `Invoice Ref: ${payment.reference}`,
