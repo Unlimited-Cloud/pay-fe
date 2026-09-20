@@ -58,6 +58,11 @@ export async function mountCyberSourceCheckout(
   const client = await window.VAS.UnifiedCheckout(captureContext);
   const checkout = await client.createCheckout();
 
+  checkout.on('*', (data: any) => {
+    console.log('CyberSource event fired:', data);
+  });
+
+
   if (onReady) {
     checkout.on('ready', (data) => {
       console.log('CyberSource ready event:', data);
