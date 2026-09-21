@@ -44,7 +44,6 @@ export async function mountCyberSourceCheckout(
   integrity?: string,
   onReady?: () => void
 ): Promise<string> {
-  console.log('LOADER VERSION CHECK — onReady param present:', typeof onReady);
 
   // 1. Load the script tag
   await loadScript(clientLibraryUrl, integrity);
@@ -58,16 +57,8 @@ export async function mountCyberSourceCheckout(
   const client = await window.VAS.UnifiedCheckout(captureContext);
   const checkout = await client.createCheckout();
 
-  checkout.on('*', (data: any) => {
-    console.log('CyberSource event fired:', data);
-  });
-
-
   if (onReady) {
-    checkout.on('ready', (data) => {
-      console.log('CyberSource ready event:', data);
-      onReady();
-    });
+    checkout.on('mounted', onReady);
   }
 
   // 4. Mount into container (resolves with result JWT when payment is completed)
