@@ -70,6 +70,13 @@ export default function PaymentForm({
   const [cyberSourceMounting, setCyberSourceMounting] = useState(false);
   const cyberSourceContainerRef = useRef<HTMLDivElement>(null);
 
+  const [modal, setModal] = useState<{
+    title: string;
+    message: string;
+    variant?: 'success' | 'error' | 'info';
+    onClose?: () => void;
+  } | null>(null);
+
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
@@ -235,9 +242,15 @@ export default function PaymentForm({
           window.location.href = redirectUrl;
         } else {
           console.log('Khalti Response:', result);
-          alert('Khalti payment initiated successfully.');
+          setModal({ title: 'Payment initiated', message: 'Khalti payment initiated successfully.', variant: 'success' });
         }
-      } else if (formData.selectedGateway === 'esewa') {
+      } else if (
+        formData.selectedGateway === 'esewa' ||
+        formData.selectedGateway === 'bhimpay' ||
+        formData.selectedGateway === 'alipay'
+      ) {
+        const gatewayLabel = PAYMENT_GATEWAYS[formData.selectedGateway]?.name || 'eSewa';
+
         const result = await initiateEsewaPayment({
           orderId: activeOrderId,
           amount: formData.amount,
@@ -253,8 +266,12 @@ export default function PaymentForm({
         if (esewaData && esewaData.signature) {
           submitEsewaForm(esewaData);
         } else {
-          console.log('eSewa Response:', result);
-          alert(result.message || 'Failed to initiate eSewa payment.');
+          console.log(`${gatewayLabel} Response:`, result);
+          setModal({
+            title: 'Payment failed',
+            message: result.message || `Failed to initiate ${gatewayLabel} payment.`,
+            variant: 'error',
+          });
         }
       } else if (formData.selectedGateway === 'cybersource') {
         const sessionData = await initiateCyberSourcePayment({
@@ -292,37 +309,51 @@ export default function PaymentForm({
               });
 
               if (verification.success) {
-                alert(
-                  `Payment successful! Transaction ID: ${verification.cybersource_transaction_id || 'Approved'
-                  }`
-                );
-                window.location.reload();
+                setModal({
+                  title: 'Payment successful',
+                  message: `Transaction ID: ${verification.cybersource_transaction_id || 'Approved'}`,
+                  variant: 'success',
+                  onClose: () => window.location.reload(),
+                });
               } else {
-                alert(verification.message || 'Payment verification failed.');
+                setModal({
+                  title: 'Payment failed',
+                  message: verification.message || 'Payment verification failed.',
+                  variant: 'error',
+                });
               }
             } catch (mountErr) {
               console.error('CyberSource Checkout Error:', mountErr);
-              alert(
-                mountErr instanceof Error
-                  ? mountErr.message
-                  : 'Error mounting CyberSource checkout.'
-              );
+              setModal({
+                title: 'Payment failed',
+                message:
+                  mountErr instanceof Error
+                    ? mountErr.message
+                    : 'Error mounting CyberSource checkout.',
+                variant: 'error',
+              });
               setCyberSourceActive(false);
             } finally {
               setCyberSourceMounting(false);
             }
           }, 100);
         } else {
-          alert(
-            sessionData.message || 'Failed to initialize CyberSource session.'
-          );
+          setModal({
+            title: 'Payment failed',
+            message: sessionData.message || 'Failed to initialize CyberSource session.',
+            variant: 'error',
+          });
         }
       } else {
-        alert('Unsupported payment method selected.');
+        setModal({ title: 'Payment failed', message: 'Unsupported payment method selected.', variant: 'error' });
       }
     } catch (error) {
       console.error('Payment Error:', error);
-      alert(error instanceof Error ? error.message : 'Failed to initiate payment');
+      setModal({
+        title: 'Payment failed',
+        message: error instanceof Error ? error.message : 'Failed to initiate payment',
+        variant: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -812,7 +843,7 @@ export default function PaymentForm({
                 <p className="font-display text-[11px] font-bold uppercase tracking-wider text-[#C8102E]">
                   Pay now
                 </p>
-                
+
                 {!formData.currency ? (
                   <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
                     Choose a currency above to view payment options
@@ -925,6 +956,59 @@ export default function PaymentForm({
           )}
         </div>
       </div>
+
+      {modal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+          onClick={() => {
+            const onClose = modal.onClose;
+            setModal(null);
+            onClose?.();
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 text-center"
+          >
+            <div
+              className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${modal.variant === 'success'
+                  ? 'bg-emerald-50 text-emerald-600'
+                  : modal.variant === 'error'
+                    ? 'bg-red-50 text-red-600'
+                    : 'bg-blue-50 text-blue-600'
+                }`}
+            >
+              {modal.variant === 'success' ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : modal.variant === 'error' ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+            </div>
+            <h3 className="font-display text-base font-bold text-slate-900 mb-1.5">{modal.title}</h3>
+            <p className="text-sm text-slate-500 mb-5">{modal.message}</p>
+            <button
+              type="button"
+              onClick={() => {
+                const onClose = modal.onClose;
+                setModal(null);
+                onClose?.();
+              }}
+              className="font-display w-full py-2.5 bg-[#1E3A5F] text-white rounded-xl text-sm font-semibold hover:bg-[#16304D] transition-colors cursor-pointer"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
