@@ -411,7 +411,7 @@ export default function PaymentForm({
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="font-display text-xl font-bold text-[#12131A] tracking-tight">
-                {cyberSourceActive ? 'Card Payment' : 'Payment details'}
+                {cyberSourceActive ? 'Card Payment' : 'Complete Your Payment'}
               </h1>
               <p className="text-sm text-slate-500 mt-0.5">
                 {cyberSourceActive
@@ -472,11 +472,11 @@ export default function PaymentForm({
               />
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Contact details */}
-              <div className="space-y-3">
-                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
-                  Contact details
+              <div className="space-y-2.5 p-3 rounded-xl border border-[#1E3A5F]/30">
+                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-[#1E3A5F]">
+                  Payment to
                 </p>
 
                 {/* Full Name */}
@@ -662,9 +662,9 @@ export default function PaymentForm({
               </div>
 
               {/* Transfer details */}
-              <div className="space-y-3">
-                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
-                  Transfer details
+              <div className="space-y-2.5 p-3 rounded-xl border border-emerald-500/40">
+                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                  Payment details
                 </p>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -808,11 +808,11 @@ export default function PaymentForm({
               </div>
 
               {/* Payment method (Always clickable) */}
-              <div className="space-y-3">
-                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-slate-800">
-                  Payment method
+              <div className="space-y-2.5 p-3 rounded-xl border border-[#C8102E]/30">
+                <p className="font-display text-[11px] font-bold uppercase tracking-wider text-[#C8102E]">
+                  Pay now
                 </p>
-
+                
                 {!formData.currency ? (
                   <div className="p-4 text-center border border-dashed border-slate-200 rounded-xl text-xs text-slate-400">
                     Choose a currency above to view payment options
@@ -821,6 +821,7 @@ export default function PaymentForm({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                     {availableGateways.map((gw) => {
                       const isSelected = formData.selectedGateway === gw.id;
+                      const isCard = gw.id === 'cybersource';
                       return (
                         <button
                           key={gw.id}
@@ -843,14 +844,30 @@ export default function PaymentForm({
                           </span>
 
                           <div className="h-7 w-20 flex items-center justify-center mb-1.5 mt-1">
-                            <img
-                              src={gw.logo}
-                              alt={gw.name}
-                              className="max-h-6 max-w-full object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLElement).style.display = 'none';
-                              }}
-                            />
+                            {isCard ? (
+                              <svg
+                                className="w-6 h-6 text-[#1E3A5F]"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M3 10h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"
+                                />
+                              </svg>
+                            ) : (
+                              <img
+                                src={gw.logo}
+                                alt={gw.name}
+                                className="max-h-6 max-w-full object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
+                              />
+                            )}
                           </div>
                           <span className="text-xs font-medium text-slate-700">
                             {gw.name}

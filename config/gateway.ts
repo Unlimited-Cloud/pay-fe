@@ -17,7 +17,7 @@ export const PAYMENT_GATEWAYS: Record<string, PaymentGateway> = {
   },
   cybersource: {
     id: 'cybersource',
-    name: 'CyberSource',
+    name: 'Debit/Credit Card',
     logo: 'https://cdn.brandfetch.io/cybersource.com/w/400/h/400/logo',
     subtitle: 'Credit / Debit Card (Visa, Mastercard)',
     supportedCurrencies: ['NPR', 'USD', 'EUR', 'GBP', 'AUD', 'INR'],
