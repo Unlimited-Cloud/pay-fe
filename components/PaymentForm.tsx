@@ -33,6 +33,7 @@ export interface InitialPaymentData {
   currency?: SupportedCurrency | string;
   description?: string;
   reference?: string;
+  invoiceUrl?: string;
 }
 
 export interface PaymentFormProps {
@@ -76,6 +77,8 @@ export default function PaymentForm({
     variant?: 'success' | 'error' | 'info';
     onClose?: () => void;
   } | null>(null);
+
+
 
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
@@ -846,6 +849,50 @@ export default function PaymentForm({
                   </div>
                 </div>
               </div>
+
+              {isReadOnlyInvoice && initialData?.invoiceUrl && (
+                <a href={initialData.invoiceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#1E3A5F] rounded-xl px-4 py-3 flex items-center justify-between gap-2 hover:bg-[#16304D] transition-colors shadow-sm"
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold text-white">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    View Invoice
+                  </span>
+                  <svg
+                    className="w-4 h-4 text-white/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </a>
+              )}
 
               {/* Payment method (Always clickable) */}
               <div className="space-y-2.5 p-3 rounded-xl border border-[#C8102E]/30">
