@@ -226,7 +226,16 @@ export default function PaymentForm({
     try {
       const activeOrderId = initialData?.reference;
 
-      if (formData.selectedGateway === 'khalti') {
+      if (
+        formData.selectedGateway === 'khalti' ||
+        formData.selectedGateway === 'mobile_banking' ||
+        formData.selectedGateway === 'sct_card' ||
+        formData.selectedGateway === 'connect_ips' ||
+        formData.selectedGateway === 'ebanking' ||
+        formData.selectedGateway === 'khalti_wallet'
+      ) {
+        const khaltiLabel = PAYMENT_GATEWAYS[formData.selectedGateway]?.name || 'Khalti';
+
         const result = await initiateKhaltiPayment({
           orderId: activeOrderId,
           amount: formData.amount,
@@ -241,8 +250,8 @@ export default function PaymentForm({
         if (redirectUrl) {
           window.location.href = redirectUrl;
         } else {
-          console.log('Khalti Response:', result);
-          setModal({ title: 'Payment initiated', message: 'Khalti payment initiated successfully.', variant: 'success' });
+          console.log(`${khaltiLabel} Response:`, result);
+          setModal({ title: 'Payment initiated', message: `${khaltiLabel} payment initiated successfully.`, variant: 'success' });
         }
       } else if (
         formData.selectedGateway === 'esewa' ||
@@ -972,10 +981,10 @@ export default function PaymentForm({
           >
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${modal.variant === 'success'
-                  ? 'bg-emerald-50 text-emerald-600'
-                  : modal.variant === 'error'
-                    ? 'bg-red-50 text-red-600'
-                    : 'bg-blue-50 text-blue-600'
+                ? 'bg-emerald-50 text-emerald-600'
+                : modal.variant === 'error'
+                  ? 'bg-red-50 text-red-600'
+                  : 'bg-blue-50 text-blue-600'
                 }`}
             >
               {modal.variant === 'success' ? (
