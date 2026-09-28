@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Payment Orchestration",
+  title: "Unlimited Global Payin Service",
   description: "Fast, secure payment orchestration checkout",
 };
 

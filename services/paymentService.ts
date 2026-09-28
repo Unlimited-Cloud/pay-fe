@@ -9,6 +9,7 @@ export interface PaymentInitiatePayload {
   phone_code: string;
   mobile: string;
   description?: string;
+  payment_method: string;
 }
 
 export interface PaymentInitiateResponse {
@@ -48,6 +49,7 @@ export async function initiateKhaltiPayment(formData: {
   phoneCode: string;
   phoneNumber: string;
   description?: string;
+  paymentMethod: string;
 }): Promise<PaymentInitiateResponse> {
   const token = localStorage.getItem("bearer_token");
 
@@ -63,6 +65,7 @@ export async function initiateKhaltiPayment(formData: {
     phone_code: formData.phoneCode,
     mobile: formData.phoneNumber,
     description: formData.description,
+    payment_method: formData.paymentMethod,
   };
 
   const response = await fetch(`${API_BASE_URL}/khalti/initiate`, {
@@ -96,6 +99,7 @@ export async function initiateEsewaPayment(formData: {
   phoneCode: string;
   phoneNumber: string;
   description?: string;
+  paymentMethod: string;
 }): Promise<PaymentInitiateResponse> {
   const token = localStorage.getItem("bearer_token");
 
@@ -111,6 +115,7 @@ export async function initiateEsewaPayment(formData: {
     phone_code: formData.phoneCode,
     mobile: formData.phoneNumber,
     description: formData.description,
+    payment_method: formData.paymentMethod,
   };
 
   const response = await fetch(`${API_BASE_URL}/esewa/initiate`, {
@@ -142,6 +147,7 @@ export async function initiateCyberSourcePayment(payload: {
   phoneCode: string;
   phoneNumber: string;
   description?: string;
+  paymentMethod: string;
 }): Promise<{
   success: boolean;
   order_reference: string;
@@ -170,6 +176,7 @@ export async function initiateCyberSourcePayment(payload: {
       phone_code: payload.phoneCode,
       mobile: payload.phoneNumber,
       description: payload.description,
+      payment_method: payload.paymentMethod,
     }),
   });
 

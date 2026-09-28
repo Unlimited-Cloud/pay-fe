@@ -229,6 +229,20 @@ export default function PaymentForm({
     try {
       const activeOrderId = initialData?.reference;
 
+      const paymentMethodMap: Record<string, string> = {
+        esewa: 'esewa',
+        khalti: 'khalti',
+        mobile_banking: 'khalti by mobile banking',
+        sct_card: 'khalti by sct card',
+        connect_ips: 'khalti by connect ips',
+        ebanking: 'khalti by ebanking',
+        khalti_wallet: 'khalti by khalti wallet',
+        bhimpay: 'esewa by bhim pay',
+        alipay: 'esewa by alipay',
+        cybersource: 'cybersource card',
+      };
+      const paymentMethod = paymentMethodMap[formData.selectedGateway] || formData.selectedGateway;
+
       if (
         formData.selectedGateway === 'khalti' ||
         formData.selectedGateway === 'mobile_banking' ||
@@ -247,6 +261,7 @@ export default function PaymentForm({
           phoneCode: formData.phoneCode,
           phoneNumber: formData.phoneNumber,
           description: formData.description,
+          paymentMethod,
         });
 
         const redirectUrl = result.payment_url || result.data?.payment_url;
@@ -271,6 +286,7 @@ export default function PaymentForm({
           phoneCode: formData.phoneCode,
           phoneNumber: formData.phoneNumber,
           description: formData.description,
+          paymentMethod,
         });
 
         const esewaData = result.data || result;
@@ -295,6 +311,7 @@ export default function PaymentForm({
           phoneCode: formData.phoneCode,
           phoneNumber: formData.phoneNumber,
           description: formData.description,
+          paymentMethod,
         });
 
         if (
