@@ -131,7 +131,10 @@ export async function initiateEsewaPayment(formData: {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || `eSewa payment initiation failed: ${response.statusText}`);
+    const fieldError = data.errors ? Object.values(data.errors).flat()[0] : null;
+    throw new Error(
+      (fieldError as string) || data.message || `eSewa payment initiation failed: ${response.statusText}`
+    );
   }
 
   return data;
