@@ -14,6 +14,8 @@ import {
 } from '@/services/paymentService';
 import { submitEsewaForm } from '@/utils/esewaForm';
 import { mountCyberSourceCheckout } from '@/utils/cybersourceLoader';
+import Image from 'next/image';
+import LogoGif from "../public/assets/Unlimited Vehicle Rental logo gif.gif"
 
 const CURRENCIES: { code: SupportedCurrency; symbol: string }[] = [
   { code: 'NPR', symbol: 'Rs' },
@@ -78,11 +80,11 @@ export default function PaymentForm({
     onClose?: () => void;
   } | null>(null);
 
-
-
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
+
+ const GIF_DURATION_MS = 2800; // Duration in milliseconds for 1 full GIF loop
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
@@ -93,10 +95,15 @@ export default function PaymentForm({
         setIsInitializing(true);
         setInitError(null);
 
-        // Only fetch if token is not already created
-        if (!localStorage.getItem("bearer_token")) {
-          await fetchAuthToken();
-        }
+        // Waits for both the token check and the GIF timer before completing
+        await Promise.all([
+          (async () => {
+            if (!localStorage.getItem("bearer_token")) {
+              await fetchAuthToken();
+            }
+          })(),
+          new Promise((resolve) => setTimeout(resolve, GIF_DURATION_MS)),
+        ]);
       } catch (error) {
         console.error('Session Token Error:', error);
         setInitError(
@@ -404,11 +411,17 @@ export default function PaymentForm({
 
   if (isInitializing) {
     return (
-      <div className="font-body relative min-h-screen w-full flex items-start justify-center py-10 px-4 overflow-hidden bg-[#111827]">
+      <div className="font-body relative min-h-screen w-full flex items-center justify-center py-10 px-4 overflow-hidden bg-[#111827]">
         {fontStyles}
         <div className="absolute inset-0 bg-gradient-to-br from-[#0F1B2E] via-[#16243B] to-[#1B1220]" />
         <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-black/40 border border-slate-100 p-10 flex flex-col items-center justify-center min-h-[420px]">
-          <div className="animate-spin rounded-full h-9 w-9 border-[3px] border-[#1E3A5F] border-t-transparent mb-4" />
+          <div className="w-48 h-48 flex items-center justify-center mb-2">
+            <img
+              src="/assets/Unlimited Vehicle Rental logo gif.gif"
+              alt="Loading..."
+              className="w-full h-full object-contain"
+            />
+          </div>
           <h2 className="font-display text-sm font-semibold text-slate-800">
             Initiating session
           </h2>
