@@ -20,6 +20,11 @@ interface PaymentData {
     phone?: string;
     mobile?: string;
   };
+  invoice?: {
+    has_invoice: boolean;
+    url: string;
+    filename: string;
+  };
 }
 
 interface PaymentResponse {
@@ -121,6 +126,7 @@ export default function PaymentPage() {
         currency: payment.currency,
         description: payment.description || `Invoice Ref: ${payment.reference}`,
         reference: payment.reference,
+        invoiceUrl: payment.invoice?.has_invoice ? payment.invoice.url : undefined,
       }}
     />
   );

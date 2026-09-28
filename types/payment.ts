@@ -1,7 +1,7 @@
 // src/types/payment.ts
 export type SupportedCurrency = 'NPR' | 'USD' | 'EUR' | 'GBP' | 'AUD' | 'INR';
 
-export type GatewayId = 'esewa' | 'khalti' | 'cybersource';
+export type GatewayId = 'esewa' | 'khalti' | 'cybersource' | 'bhimpay' | 'alipay' | 'mobile_banking' | 'sct_card'| 'connect_ips' | 'ebanking' | 'khalti_wallet' ;
 
 export interface PaymentGateway {
   id: GatewayId;
