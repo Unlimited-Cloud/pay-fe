@@ -2,7 +2,7 @@
 
 export function submitEsewaForm(
   data: Record<string, any>,
-  actionUrl: string = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+  actionUrl: string = "https://epay.esewa.com.np/api/epay/main/v2/form"
 ) {
   const form = document.createElement("form");
   form.method = "POST";
