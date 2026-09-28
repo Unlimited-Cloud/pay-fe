@@ -1,8 +1,13 @@
 // src/utils/esewaForm.ts
 
+const ESEWA_FORM_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://epay.esewa.com.np/api/epay/main/v2/form"
+    : "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
+
 export function submitEsewaForm(
   data: Record<string, any>,
-  actionUrl: string = "https://epay.esewa.com.np/api/epay/main/v2/form"
+  actionUrl: string = ESEWA_FORM_URL
 ) {
   const form = document.createElement("form");
   form.method = "POST";
