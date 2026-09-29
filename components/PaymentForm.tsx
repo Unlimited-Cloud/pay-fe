@@ -24,6 +24,7 @@ const CURRENCIES: { code: SupportedCurrency; symbol: string }[] = [
   { code: 'GBP', symbol: '£' },
   { code: 'AUD', symbol: 'A$' },
   { code: 'INR', symbol: '₹' },
+  { code: 'CNY', symbol: '¥' },
 ];
 
 export interface InitialPaymentData {
@@ -278,13 +279,8 @@ export default function PaymentForm({
           console.log(`${khaltiLabel} Response:`, result);
           setModal({ title: 'Payment initiated', message: `${khaltiLabel} payment initiated successfully.`, variant: 'success' });
         }
-      } else if (
-        formData.selectedGateway === 'esewa' ||
-        formData.selectedGateway === 'bhimpay' ||
-        formData.selectedGateway === 'alipay'
-      ) {
-        const gatewayLabel = PAYMENT_GATEWAYS[formData.selectedGateway]?.name || 'eSewa';
-
+      } else if (formData.selectedGateway === 'esewa') {
+                
         const result = await initiateEsewaPayment({
           orderId: activeOrderId,
           amount: formData.amount,
@@ -301,10 +297,10 @@ export default function PaymentForm({
         if (esewaData && esewaData.signature) {
           submitEsewaForm(esewaData);
         } else {
-          console.log(`${gatewayLabel} Response:`, result);
+          console.log(`eSewa Response:`, result);
           setModal({
             title: 'Payment failed',
-            message: result.message || `Failed to initiate ${gatewayLabel} payment.`,
+            message: result.message || `Failed to initiate eSewa payment.`,
             variant: 'error',
           });
         }
