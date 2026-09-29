@@ -1,5 +1,5 @@
 // src/types/payment.ts
-export type SupportedCurrency = 'NPR' | 'USD' | 'EUR' | 'GBP' | 'AUD' | 'INR';
+export type SupportedCurrency = 'NPR' | 'USD' | 'EUR' | 'GBP' | 'AUD' | 'INR' | 'CNY';
 
 export type GatewayId = 'esewa' | 'khalti' | 'cybersource' | 'bhimpay' | 'alipay' | 'mobile_banking' | 'sct_card'| 'connect_ips' | 'ebanking' | 'khalti_wallet' ;
 
