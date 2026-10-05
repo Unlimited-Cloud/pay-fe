@@ -2,7 +2,8 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
 export interface PaymentInitiatePayload {
-  order_id: string;
+  order_id?: string;
+  reference?: string;
   amount: number;
   name: string;
   email: string;
@@ -29,7 +30,10 @@ export function generateOrderId(): string {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
-  const dateStr = `${year}${month}${day}`;
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  const dateTimeStr = `${year}${month}${day}-${hours}${minutes}${seconds}`;
 
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomStr = '';
@@ -37,12 +41,12 @@ export function generateOrderId(): string {
     randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
-  return `PL-${dateStr}-${randomStr}`;
+  return `PL-${dateTimeStr}-${randomStr}`;
 }
 
 // Khalti Initiate
 export async function initiateKhaltiPayment(formData: {
-  orderId?: string;
+  reference?: string;
   amount: string;
   name: string;
   email: string;
@@ -58,7 +62,7 @@ export async function initiateKhaltiPayment(formData: {
   }
 
   const payload: PaymentInitiatePayload = {
-    order_id: formData.orderId || generateOrderId(),
+    ...(formData.reference ? { reference: formData.reference } : { order_id: generateOrderId() }),
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
@@ -92,7 +96,7 @@ export async function initiateKhaltiPayment(formData: {
 
 // eSewa Initiate
 export async function initiateEsewaPayment(formData: {
-  orderId?: string;
+  reference?: string;
   amount: string;
   name: string;
   email: string;
@@ -108,7 +112,7 @@ export async function initiateEsewaPayment(formData: {
   }
 
   const payload: PaymentInitiatePayload = {
-    order_id: formData.orderId || generateOrderId(),
+    ...(formData.reference ? { reference: formData.reference } : { order_id: generateOrderId() }),
     amount: parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
@@ -142,7 +146,7 @@ export async function initiateEsewaPayment(formData: {
 
 // CyberSource Session Initiate
 export async function initiateCyberSourcePayment(payload: {
-  orderId?: string;
+  reference?: string;
   amount: string | number;
   currency: string;
   name: string;
@@ -171,7 +175,7 @@ export async function initiateCyberSourcePayment(payload: {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      order_id: payload.orderId || generateOrderId(),
+      ...(payload.reference ? { reference: payload.reference } : { order_id: generateOrderId() }),
       amount: parseFloat(String(payload.amount)),
       currency: payload.currency,
       name: payload.name,
