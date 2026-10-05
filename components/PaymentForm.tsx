@@ -235,7 +235,7 @@ export default function PaymentForm({
     setLoading(true);
 
     try {
-      const activeOrderId = initialData?.reference;
+      const activeReference = isReadOnlyInvoice ? initialData?.reference : undefined;
 
       const paymentMethodMap: Record<string, string> = {
         esewa: 'esewa',
@@ -262,7 +262,7 @@ export default function PaymentForm({
         const khaltiLabel = PAYMENT_GATEWAYS[formData.selectedGateway]?.name || 'Khalti';
 
         const result = await initiateKhaltiPayment({
-          orderId: activeOrderId,
+          reference: activeReference,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -282,7 +282,7 @@ export default function PaymentForm({
       } else if (formData.selectedGateway === 'esewa') {
                 
         const result = await initiateEsewaPayment({
-          orderId: activeOrderId,
+          reference: activeReference,
           amount: formData.amount,
           name: formData.name,
           email: formData.email,
@@ -306,7 +306,7 @@ export default function PaymentForm({
         }
       } else if (formData.selectedGateway === 'cybersource') {
         const sessionData = await initiateCyberSourcePayment({
-          orderId: activeOrderId,
+          reference: activeReference,
           amount: formData.amount,
           currency: formData.currency,
           name: formData.name,
