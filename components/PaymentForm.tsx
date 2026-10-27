@@ -85,7 +85,7 @@ export default function PaymentForm({
   const phoneDropdownRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
 
- const GIF_DURATION_MS = 2800; // Duration in milliseconds for 1 full GIF loop
+  const GIF_DURATION_MS = 2800; // Duration in milliseconds for 1 full GIF loop
 
   useEffect(() => {
     if (hasInitializedRef.current) return;
@@ -178,15 +178,19 @@ export default function PaymentForm({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isAmountLocked = isReadOnlyInvoice && Boolean(initialData?.amount);
+  const isCurrencyLocked = isReadOnlyInvoice && Boolean(initialData?.currency);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    if (isReadOnlyInvoice) return;
+    const isEditableOnLink = e.target.name === 'amount' && !isAmountLocked;
+    if (isReadOnlyInvoice && !isEditableOnLink) return;
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleCurrencySelect = (currency: SupportedCurrency) => {
-    if (isReadOnlyInvoice) return;
+    if (isCurrencyLocked) return;
     const gateways = getAvailableGateways(currency);
     const defaultGateway: GatewayId | '' =
       gateways.length === 1 ? gateways[0].id : '';
@@ -280,7 +284,7 @@ export default function PaymentForm({
           setModal({ title: 'Payment initiated', message: `${khaltiLabel} payment initiated successfully.`, variant: 'success' });
         }
       } else if (formData.selectedGateway === 'esewa') {
-                
+
         const result = await initiateEsewaPayment({
           reference: activeReference,
           amount: formData.amount,
@@ -744,9 +748,9 @@ export default function PaymentForm({
                     </label>
                     <button
                       type="button"
-                      disabled={isReadOnlyInvoice}
+                      disabled={isCurrencyLocked}
                       onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
-                      className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${isReadOnlyInvoice
+                      className={`w-full h-[42px] px-3.5 border rounded-xl flex items-center justify-between text-sm font-medium transition-colors focus:outline-none ${isCurrencyLocked
                         ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                         : 'bg-slate-50/60 border-slate-200 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-[#1E3A5F] focus:ring-2 focus:ring-[#1E3A5F]/10 cursor-pointer'
                         }`}
@@ -758,7 +762,7 @@ export default function PaymentForm({
                           </span>
                         )}
                       </span>
-                      {!isReadOnlyInvoice && (
+                      {!isCurrencyLocked && (
                         <svg
                           className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isCurrencyOpen ? 'rotate-180' : ''
                             }`}
@@ -776,7 +780,7 @@ export default function PaymentForm({
                       )}
                     </button>
 
-                    {isCurrencyOpen && !isReadOnlyInvoice && (
+                    {isCurrencyOpen && !isCurrencyLocked && (
                       <div className="absolute left-0 z-50 mt-1.5 w-40 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/70 py-1">
                         {CURRENCIES.map((c) => (
                           <button
@@ -820,12 +824,12 @@ export default function PaymentForm({
                         step="0.01"
                         // min="10"
                         required
-                        readOnly={isReadOnlyInvoice}
+                        readOnly={isAmountLocked}
                         value={formData.amount}
                         onChange={handleChange}
-                        placeholder="100.00"
+                        placeholder="0.00"
                         className={`w-full h-[42px] ${selectedCurrencySymbol ? 'pl-8' : 'pl-3.5'
-                          } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${isReadOnlyInvoice
+                          } pr-3.5 border rounded-xl text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none transition-colors ${isAmountLocked
                             ? 'bg-slate-100/80 border-slate-200 text-slate-600 cursor-not-allowed select-none'
                             : 'bg-slate-50/60 focus:bg-white focus:ring-2'
                           } ${amountError
