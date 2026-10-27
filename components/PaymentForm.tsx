@@ -345,7 +345,7 @@ export default function PaymentForm({
               });
 
               if (verification.success) {
-                setModal({
+                setModal({   
                   title: 'Payment successful',
                   message: `Transaction ID: ${verification.cybersource_transaction_id || 'Approved'}`,
                   variant: 'success',
