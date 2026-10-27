@@ -24,7 +24,7 @@ export interface PaymentInitiateResponse {
   [key: string]: any;
 }
 
-// Generate matching pattern: PL-YYYYMMDD-HHMMSS-XXXXXX (e.g., PL-20260928-153045-1BUNGK)
+// Generate matching pattern: PL-YYYYMMDD-XXXXXX (e.g., PL-20260917-1BUNGK)
 export function generateOrderId(): string {
   const now = new Date();
   const year = now.getFullYear();
@@ -144,19 +144,6 @@ export async function initiateEsewaPayment(formData: {
   return data;
 }
 
-// Reads clientLibrary / clientLibraryIntegrity from the capture context JWT payload
-function decodeCaptureContext(
-  jwt: string
-): { clientLibrary?: string; clientLibraryIntegrity?: string } | null {
-  try {
-    const base64 = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
-    return JSON.parse(atob(padded))?.ctx?.[0]?.data ?? null;
-  } catch {
-    return null;
-  }
-}
-
 // CyberSource Session Initiate
 export async function initiateCyberSourcePayment(payload: {
   reference?: string;
@@ -202,24 +189,7 @@ export async function initiateCyberSourcePayment(payload: {
 
   const data = await response.json();
   if (!response.ok || !data.success) {
-    const fieldError = data.errors ? Object.values(data.errors).flat()[0] : null;
-    throw new Error(
-      (fieldError as string) || data.message || 'Failed to initialize CyberSource checkout session.'
-    );
-  }
-
-  // "Already initiated" responses nest the session under `data`
-  if (!data.capture_context && data.data?.capture_context) {
-    const ctx = decodeCaptureContext(data.data.capture_context);
-    return {
-      success: true,
-      order_reference: data.data.reference,
-      capture_context: data.data.capture_context,
-      client_library: data.data.client_library || ctx?.clientLibrary || '',
-      client_library_integrity:
-        data.data.client_library_integrity || ctx?.clientLibraryIntegrity,
-      message: data.message,
-    };
+    throw new Error(data.message || 'Failed to initialize CyberSource checkout session.');
   }
   return data;
 }
