@@ -1,4 +1,3 @@
-// src/services/paymentService.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 
 export interface PaymentInitiatePayload {
@@ -24,21 +23,84 @@ export interface PaymentInitiateResponse {
   [key: string]: any;
 }
 
-// Generate matching pattern: PL-YYYYMMDD-XXXXXX (e.g., PL-20260917-1BUNGK)
+export interface CyberSourceSessionResponse {
+  success: boolean;
+  order_reference: string;
+  capture_context: string;
+  client_library: string;
+  client_library_integrity?: string;
+  message?: string;
+}
+
+export interface CyberSourceFinalizeResponse {
+  success: boolean;
+  order_reference?: string;
+  transaction_id?: string;
+  gateway_status?: string;
+  requires_reconciliation?: boolean;
+  message?: string;
+  [key: string]: any;
+}
+
+function getApiBaseUrl(): string {
+  if (!API_BASE_URL) {
+    throw new Error('API base URL is not configured.');
+  }
+
+  return API_BASE_URL.replace(/\/+$/, '');
+}
+
+function getBearerToken(): string {
+  if (typeof window === 'undefined') {
+    throw new Error('This payment operation requires a browser.');
+  }
+
+  const token = localStorage.getItem('bearer_token');
+
+  if (!token) {
+    throw new Error(
+      'Authorization token not found. Please log in again.'
+    );
+  }
+
+  return token;
+}
+
+async function readResponse<T>(response: Response): Promise<T> {
+  return response.json().catch(() => ({} as T));
+}
+
+function getFirstValidationError(data: any): string | null {
+  if (!data?.errors) {
+    return null;
+  }
+
+  const firstValue = Object.values(data.errors).flat()[0];
+  return typeof firstValue === 'string' ? firstValue : null;
+}
+
+// Generate a unique merchant order ID.
+// The backend must still enforce uniqueness.
 export function generateOrderId(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-  const dateTimeStr = `${year}${month}${day}-${hours}${minutes}${seconds}`;
+
+  const dateTimeStr = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('') + '-' + [
+    String(now.getHours()).padStart(2, '0'),
+    String(now.getMinutes()).padStart(2, '0'),
+    String(now.getSeconds()).padStart(2, '0'),
+  ].join('');
 
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let randomStr = '';
-  for (let i = 0; i < 6; i++) {
-    randomStr += chars.charAt(Math.floor(Math.random() * chars.length));
+
+  for (let i = 0; i < 8; i++) {
+    randomStr += chars.charAt(
+      Math.floor(Math.random() * chars.length)
+    );
   }
 
   return `PL-${dateTimeStr}-${randomStr}`;
@@ -55,15 +117,13 @@ export async function initiateKhaltiPayment(formData: {
   description?: string;
   paymentMethod: string;
 }): Promise<PaymentInitiateResponse> {
-  const token = localStorage.getItem("bearer_token");
-
-  if (!token) {
-    throw new Error("Authorization token not found. Please reload the page.");
-  }
+  const token = getBearerToken();
 
   const payload: PaymentInitiatePayload = {
-    ...(formData.reference ? { reference: formData.reference } : { order_id: generateOrderId() }),
-    amount: parseFloat(formData.amount),
+    ...(formData.reference
+      ? { reference: formData.reference }
+      : { order_id: generateOrderId() }),
+    amount: Number.parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
     phone_code: formData.phoneCode,
@@ -72,22 +132,30 @@ export async function initiateKhaltiPayment(formData: {
     payment_method: formData.paymentMethod,
   };
 
-  const response = await fetch(`${API_BASE_URL}/khalti/initiate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
+    throw new Error('Please provide a valid payment amount.');
+  }
 
-  const data = await response.json();
+  const response = await fetch(
+    `${getApiBaseUrl()}/khalti/initiate`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const data = await readResponse<PaymentInitiateResponse>(response);
 
   if (!response.ok) {
-    const fieldError = data.errors ? Object.values(data.errors).flat()[0] : null;
     throw new Error(
-      (fieldError as string) || data.message || `Khalti payment initiation failed: ${response.statusText}`
+      getFirstValidationError(data) ||
+        data.message ||
+        `Khalti initiation failed (${response.status}).`
     );
   }
 
@@ -105,15 +173,13 @@ export async function initiateEsewaPayment(formData: {
   description?: string;
   paymentMethod: string;
 }): Promise<PaymentInitiateResponse> {
-  const token = localStorage.getItem("bearer_token");
-
-  if (!token) {
-    throw new Error("Authorization token not found. Please reload the page.");
-  }
+  const token = getBearerToken();
 
   const payload: PaymentInitiatePayload = {
-    ...(formData.reference ? { reference: formData.reference } : { order_id: generateOrderId() }),
-    amount: parseFloat(formData.amount),
+    ...(formData.reference
+      ? { reference: formData.reference }
+      : { order_id: generateOrderId() }),
+    amount: Number.parseFloat(formData.amount),
     name: formData.name,
     email: formData.email,
     phone_code: formData.phoneCode,
@@ -122,22 +188,30 @@ export async function initiateEsewaPayment(formData: {
     payment_method: formData.paymentMethod,
   };
 
-  const response = await fetch(`${API_BASE_URL}/esewa/initiate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  if (!Number.isFinite(payload.amount) || payload.amount <= 0) {
+    throw new Error('Please provide a valid payment amount.');
+  }
 
-  const data = await response.json();
+  const response = await fetch(
+    `${getApiBaseUrl()}/esewa/initiate`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  const data = await readResponse<PaymentInitiateResponse>(response);
 
   if (!response.ok) {
-    const fieldError = data.errors ? Object.values(data.errors).flat()[0] : null;
     throw new Error(
-      (fieldError as string) || data.message || `eSewa payment initiation failed: ${response.statusText}`
+      getFirstValidationError(data) ||
+        data.message ||
+        `eSewa initiation failed (${response.status}).`
     );
   }
 
@@ -155,42 +229,48 @@ export async function initiateCyberSourcePayment(payload: {
   phoneNumber: string;
   description?: string;
   paymentMethod: string;
-}): Promise<{
-  success: boolean;
-  order_reference: string;
-  capture_context: string;
-  client_library: string;
-  client_library_integrity?: string;
-  message?: string;
-}> {
-  const token = localStorage.getItem('bearer_token');
-  if (!token) {
-    throw new Error('Authorization token not found. Please reload the page.');
-  }
-  const response = await fetch(`${API_BASE_URL}/checkout/session`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      ...(payload.reference ? { reference: payload.reference } : { order_id: generateOrderId() }),
-      amount: parseFloat(String(payload.amount)),
-      currency: payload.currency,
-      name: payload.name,
-      email: payload.email,
-      phone_code: payload.phoneCode,
-      mobile: payload.phoneNumber,
-      description: payload.description,
-      payment_method: payload.paymentMethod,
-    }),
-  });
+}): Promise<CyberSourceSessionResponse> {
+  const token = getBearerToken();
+  const amount = Number(payload.amount);
 
-  const data = await response.json();
-  if (!response.ok || !data.success) {
-    throw new Error(data.message || 'Failed to initialize CyberSource checkout session.');
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error('Please provide a valid payment amount.');
   }
+
+  const response = await fetch(
+    `${getApiBaseUrl()}/checkout/session`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ...(payload.reference
+          ? { reference: payload.reference }
+          : { order_id: generateOrderId() }),
+        amount,
+        currency: payload.currency,
+        name: payload.name,
+        email: payload.email,
+        phone_code: payload.phoneCode,
+        mobile: payload.phoneNumber,
+        description: payload.description,
+        payment_method: payload.paymentMethod,
+      }),
+    }
+  );
+
+  const data = await readResponse<CyberSourceSessionResponse>(response);
+
+  if (!response.ok || !data.success) {
+    throw new Error(
+      data.message ||
+        `Failed to initialize CyberSource checkout (${response.status}).`
+    );
+  }
+
   return data;
 }
 
@@ -198,30 +278,35 @@ export async function initiateCyberSourcePayment(payload: {
 export async function finalizeCyberSourcePayment(payload: {
   order_reference: string;
   result_jwt: string;
-}): Promise<{
-  success: boolean;
-  cybersource_transaction_id?: string;
-  message?: string;
-  [key: string]: any;
-}> {
-  const token = localStorage.getItem('bearer_token');
+}): Promise<CyberSourceFinalizeResponse> {
+  const token = getBearerToken();
 
-  const response = await fetch(`${API_BASE_URL}/checkout/result`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: JSON.stringify({
-      order_reference: payload.order_reference,
-      result_jwt: payload.result_jwt,
-    }),
-  });
+  const response = await fetch(
+    `${getApiBaseUrl()}/checkout/result`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.message || 'Payment verification failed on the server.');
+  const data = await readResponse<CyberSourceFinalizeResponse>(response);
+
+  // A reconciliation response must not be treated as a normal exception.
+  if (data.requires_reconciliation === true) {
+    return data;
   }
+
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+        `CyberSource verification failed (${response.status}).`
+    );
+  }
+
   return data;
-}
+} 

@@ -1,4 +1,4 @@
-// utils/cybersourceLoader.ts
+'use client';
 
 declare global {
   interface Window {
@@ -6,37 +6,62 @@ declare global {
       UnifiedCheckout: (captureContext: string) => Promise<{
         createCheckout: () => Promise<{
           mount: (container: string) => Promise<string>;
-          on: (event: string, handler: (data?: any) => void) => () => void;
+          on: (
+            event: string,
+            handler: (data?: any) => void
+          ) => () => void;
         }>;
       }>;
     };
   }
 }
 
-// Injects the UnifiedCheckout.js script into <head> with SRI check
-function loadScript(src: string, integrity?: string): Promise<void> {
+function loadScript(
+  src: string,
+  integrity?: string
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    const existingScript = document.querySelector(`script[src="${src}"]`);
+    const existingScript = Array.from(
+      document.querySelectorAll<HTMLScriptElement>('script[src]')
+    ).find((script) => script.src === new URL(src, document.baseURI).href);
+
     if (existingScript) {
-      resolve();
+      if (window.VAS?.UnifiedCheckout) {
+        resolve();
+      } else {
+        existingScript.addEventListener('load', () => resolve(), {
+          once: true,
+        });
+        existingScript.addEventListener(
+          'error',
+          () => reject(
+            new Error('Failed to load CyberSource SDK script.')
+          ),
+          { once: true }
+        );
+      }
       return;
     }
 
     const script = document.createElement('script');
     script.src = src;
     script.async = true;
+
     if (integrity) {
       script.integrity = integrity;
       script.crossOrigin = 'anonymous';
     }
 
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Failed to load CyberSource SDK script from network'));
+    script.onerror = () => {
+      script.remove();
+      reject(new Error('Failed to load CyberSource SDK script.'));
+    };
+
     document.head.appendChild(script);
   });
 }
 
-// Mounts checkout and resolves with the result_jwt once the user submits payment
 export async function mountCyberSourceCheckout(
   containerSelector: string,
   captureContext: string,
@@ -44,16 +69,27 @@ export async function mountCyberSourceCheckout(
   integrity?: string,
   onReady?: () => void
 ): Promise<string> {
-
-  // 1. Load the script tag
-  await loadScript(clientLibraryUrl, integrity);
-
-  // 2. Verify window.VAS exists
-  if (!window.VAS || typeof window.VAS.UnifiedCheckout !== 'function') {
-    throw new Error('window.VAS.UnifiedCheckout SDK was not found after loading script.');
+  if (typeof window === 'undefined') {
+    throw new Error('CyberSource checkout requires a browser.');
   }
 
-  // 3. Initialize SDK
+  if (!captureContext || !clientLibraryUrl) {
+    throw new Error(
+      'CyberSource checkout session information is incomplete.'
+    );
+  }
+
+  await loadScript(clientLibraryUrl, integrity);
+
+  if (
+    !window.VAS ||
+    typeof window.VAS.UnifiedCheckout !== 'function'
+  ) {
+    throw new Error(
+      'CyberSource Unified Checkout SDK was not found.'
+    );
+  }
+
   const client = await window.VAS.UnifiedCheckout(captureContext);
   const checkout = await client.createCheckout();
 
@@ -61,7 +97,17 @@ export async function mountCyberSourceCheckout(
     checkout.on('mounted', onReady);
   }
 
-  // 4. Mount into container (resolves with result JWT when payment is completed)
+  // This assumes the session configures automatic payment processing.
   const resultJwt = await checkout.mount(containerSelector);
+
+  if (
+    typeof resultJwt !== 'string' ||
+    resultJwt.split('.').length !== 3
+  ) {
+    throw new Error(
+      'CyberSource did not return a valid result JWT.'
+    );
+  }
+
   return resultJwt;
 }
